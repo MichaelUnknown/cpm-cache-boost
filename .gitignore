@@ -1,5 +1,6 @@
-.vscode/
-.github/
+.vscode/*
+!.vscode/settings.json
+!.vscode/c_cpp_properties.json
 build*/
 cpm_modules/
 LICENSE

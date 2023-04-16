@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    name: CI ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # install ninja
+      - name: install ninja
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      # use GitHub cache to cache dependencies
+      - uses: actions/cache@v3
+        with:
+          path: "**/cpm_modules"
+          key: cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: configure
+        run: |
+          cmake -S . -B build -G Ninja \
+          -D CPMCACHEBOOST_BUILD_TESTS=1 \
+          -D CMAKE_C_COMPILER=gcc-12 \
+          -D CMAKE_CXX_COMPILER=g++-12
+
+      - name: build
+        run: cmake --build build
+
+      - name: run test
+        run: cmake --build build --target test
