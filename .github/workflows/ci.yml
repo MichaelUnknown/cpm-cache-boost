@@ -33,10 +33,9 @@ jobs:
       - name: configure
         run: |
           cmake -S . -B build -G Ninja \
-          -D CPMCACHEBOOST_BUILD_TESTS=1
-      #    -D CPMCACHEBOOST_BUILD_TESTS=1 \
-      #    -D CMAKE_C_COMPILER=gcc-12 \
-      #    -D CMAKE_CXX_COMPILER=g++-12
+          -D CPMCACHEBOOST_BUILD_TESTS=1 \
+          -D CMAKE_C_COMPILER=gcc-12 \
+          -D CMAKE_CXX_COMPILER=g++-12
 
       - name: build
         run: cmake --build build
