@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(cpm-cache-boost
-    VERSION 1.81.0
+    VERSION 1.82.0
     LANGUAGES CXX
 )
 
@@ -14,35 +14,44 @@ include(cmake/CPM.cmake)
 CPMAddPackage(
   NAME Boost
   GITHUB_REPOSITORY boostorg/boost
-  GIT_TAG boost-1.81.0
-  VERSION 1.81.0
+  GIT_TAG boost-1.82.0
+  VERSION 1.82.0
 )
 
-# headers
-if(NOT TARGET Boost::headers)
-message(STATUS "manually adding Boost::headers")
-set(__boost_libs_dir "${Boost_SOURCE_DIR}/libs/")
-file(GLOB __boost_all_components
-  LIST_DIRECTORIES true
-  RELATIVE "${__boost_libs_dir}"
-  "${__boost_libs_dir}/*/include")
-file(GLOB __boost_all_components_num
-  LIST_DIRECTORIES true
-  RELATIVE "${__boost_libs_dir}"
-  "${__boost_libs_dir}/numeric/*/include")
-foreach(__dir ${__boost_all_components})
-  set(__full_dir "${__boost_libs_dir}${__dir}")
-  list(APPEND __boost_all_includes ${__full_dir})
-endforeach()
-foreach(__dir ${__boost_all_components_num})
-  set(__full_dir "${__boost_libs_dir}${__dir}")
-  list(APPEND __boost_all_includes ${__full_dir})
-endforeach()
-list(LENGTH __boost_all_includes __boost_all_includes_count)
-message(STATUS "number of include dirs discovered: ${__boost_all_includes_count}")
-# add target
-add_library(Boost::headers INTERFACE IMPORTED)
-set_target_properties(Boost::headers PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${__boost_all_includes}")
+# with 1.82.0 there is (still?) no Boost::boost target - adding for compatibility
+if(NOT TARGET Boost::boost)
+    message(STATUS " CPMCACHEBOOST: manually adding Boost::boost")
+    add_library(Boost::boost INTERFACE IMPORTED)
+    target_link_libraries(Boost::boost INTERFACE Boost::headers)
+endif()
+
+
+## https://stackoverflow.com/questions/32183975/how-to-print-all-the-properties-of-a-target-in-cmake/56738858#56738858
+## Get all properties that cmake supports
+execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
+## Convert command output into a CMake list
+STRING(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+STRING(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+list(REMOVE_DUPLICATES CMAKE_PROPERTY_LIST)
+function(print_target_properties tgt)
+    if(NOT TARGET ${tgt})
+      message("There is no target named '${tgt}'")
+      return()
+    endif()
+    foreach (prop ${CMAKE_PROPERTY_LIST})
+        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
+        get_target_property(propval ${tgt} ${prop})
+        if (propval)
+            message ("${tgt} ${prop} = ${propval}")
+        endif()
+    endforeach(prop)
+endfunction(print_target_properties)
+
+
+# check targets if tests is set
+if(CPMCACHEBOOST_BUILD_TESTS)
+    print_target_properties(Boost::headers)
+    print_target_properties(Boost::boost)
 endif()
 
 # run tests if set
