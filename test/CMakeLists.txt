@@ -11,9 +11,9 @@ include(GoogleTest)
 
 # macro and tests
 macro(add_boost_lib_test LIBNAME)
-    add_executable(${LIBNAME} ${LIBNAME}.cpp)
-    target_link_libraries(${LIBNAME} PRIVATE gtest gtest_main Boost::${LIBNAME})
-    gtest_discover_tests(${LIBNAME})
+    add_executable(CPMCACHEBOOST_TEST_${LIBNAME} ${LIBNAME}.cpp)
+    target_link_libraries(CPMCACHEBOOST_TEST_${LIBNAME} PRIVATE gtest gtest_main Boost::${LIBNAME})
+    gtest_discover_tests(CPMCACHEBOOST_TEST_${LIBNAME})
 endmacro()
 
 # actual tests #
