@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(cpm-cache-boost
-    VERSION 1.81.0
+    VERSION 1.92.0
     LANGUAGES CXX
 )
 
@@ -14,8 +14,8 @@ include(cmake/CPM.cmake)
 CPMAddPackage(
   NAME Boost
   GITHUB_REPOSITORY boostorg/boost
-  GIT_TAG boost-1.81.0
-  VERSION 1.81.0
+  GIT_TAG boost-1.92.0
+  VERSION 1.92.0
 )
 
 # headers

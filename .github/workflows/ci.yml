@@ -14,10 +14,10 @@ env:
 jobs:
   build:
     name: CI ubuntu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       # install ninja
       - name: install ninja
@@ -25,7 +25,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       # use GitHub cache to cache dependencies
-      - uses: actions/cache@v3
+      - uses: actions/cache@v6
         with:
           path: "**/cpm_modules"
           key: cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
@@ -34,8 +34,8 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja \
           -D CPMCACHEBOOST_BUILD_TESTS=1 \
-          -D CMAKE_C_COMPILER=gcc-12 \
-          -D CMAKE_CXX_COMPILER=g++-12
+          -D CMAKE_C_COMPILER=gcc-15 \
+          -D CMAKE_CXX_COMPILER=g++-15
 
       - name: build
         run: cmake --build build
