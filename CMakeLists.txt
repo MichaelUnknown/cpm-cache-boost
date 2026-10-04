@@ -1,22 +1,32 @@
-cmake_minimum_required(VERSION 3.14)
-project(cpm-cache-boost
-    VERSION 1.92.0
-    LANGUAGES CXX
+cmake_minimum_required(VERSION 3.15...3.22)
+project(
+  cpm-cache-boost
+  VERSION 1.92.0
+  LANGUAGES CXX
 )
 
 # options
 option(CPMCACHEBOOST_BUILD_TESTS "Enable building the tests" OFF)
-
-
+option(CPMCACHEBOOST_DEBUG_SHOW_INC_DIRS "Shows debug info / include directories" OFF)
 # CPM
 include(cmake/CPM.cmake)
-# boost
+# actual boost lib, use tar.xz for small file size (~100mb)
 CPMAddPackage(
   NAME Boost
-  GITHUB_REPOSITORY boostorg/boost
-  GIT_TAG boost-1.92.0
   VERSION 1.92.0
+  URL https://github.com/boostorg/boost/releases/download/boost-1.92.0/boost-1.92.0-cmake.tar.xz
+  URL_HASH SHA256=9bed76128d4e46755dbe818487788c6fceb6f72b378f4daa49b7e1e600d9088d
+  OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_SKIP_INSTALL_RULES ON" # Set `OFF` for installation
+          "BUILD_SHARED_LIBS OFF"
 )
+
+
+# optional debug info
+if(CPMCACHEBOOST_DEBUG_SHOW_INC_DIRS AND TARGET Boost::headers)
+  message(STATUS "cpm cache boost: before adjusting")
+  get_target_property(__boost_test_includes Boost::headers INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "cpm cache boost: Boost::headers includes are: ${__boost_test_includes}")
+endif()
 
 # add headers and boost (targets from boost lib are just dummies)
 message(STATUS "cpm cache boost: adjusting Boost::headers")
@@ -43,7 +53,9 @@ message(STATUS "cpm cache boost: added ${__boost_all_includes_count} include dir
 if(NOT TARGET Boost::headers)
   add_library(Boost::headers INTERFACE IMPORTED)
   set_target_properties(Boost::headers PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${__boost_all_includes}")
-  add_library(Boost::boost ALIAS Boost::headers)
+  if(NOT TARGET Boost::boost)
+    add_library(Boost::boost ALIAS Boost::headers)
+  endif()
 else()
   get_target_property(__boost_headers_alias Boost::headers ALIASED_TARGET)
   set_target_properties("${__boost_headers_alias}" PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${__boost_all_includes}")
@@ -52,12 +64,19 @@ else()
   endif()
 endif()
 
+# optional debug info
+if(CPMCACHEBOOST_DEBUG_SHOW_INC_DIRS AND TARGET Boost::headers)
+  message(STATUS "cpm cache boost: after adjusting")
+  get_target_property(__boost_test_includes Boost::headers INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "cpm cache boost: Boost::headers includes are: ${__boost_test_includes}")
+endif()
+
 
 # run tests if set
 if(CPMCACHEBOOST_BUILD_TESTS)
-    message(STATUS "cpm cache boost: testing enabled")
-    enable_testing()
-    add_subdirectory(test)
+  message(STATUS "cpm cache boost: testing enabled")
+  enable_testing()
+  add_subdirectory(test)
 else()
-    message(STATUS "cpm cache boost: testing DISABLED")
+  message(STATUS "cpm cache boost: testing DISABLED")
 endif()
